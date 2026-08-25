@@ -1,0 +1,8 @@
+services:
+  forgejo-caldav-sync:
+    build: .
+    image: forgejo-caldav-sync
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8080:8080"

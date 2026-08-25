@@ -1,0 +1,10 @@
+# What this project builds, not what an editor or OS drops beside it.
+
+/forgejo-caldav-sync
+coverage.out
+
+node_modules/
+.bun-cache/
+
+# Written by the release job, not by hand.
+CHANGELOG.md

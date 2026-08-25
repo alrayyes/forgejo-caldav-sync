@@ -1,0 +1,122 @@
+# The contract for this service's two HTTP endpoints, hand-written rather
+# than generated from the handlers — see internal/api for the
+# implementation they're held to.
+openapi: 3.1.0
+
+info:
+  title: forgejo-caldav-sync
+  summary: Receives Forgejo issue webhooks and reports liveness.
+  description: |
+    Everything this tool does with Forgejo issues and CalDAV VTODOs happens
+    over these two endpoints plus a periodic internal reconciliation pass —
+    there is no other API surface.
+  version: 0.1.0
+  contact:
+    name: forgejo-caldav-sync
+    url: https://github.com/alrayyes/forgejo-caldav-sync
+  license:
+    name: GPL-3.0-or-later
+    url: https://www.gnu.org/licenses/gpl-3.0.html
+
+servers:
+  - url: "{scheme}://{host}"
+    description: |
+      No canonical host — this runs wherever you deploy it, reachable from
+      your own Forgejo instance.
+    variables:
+      scheme:
+        default: https
+        enum: [https, http]
+      host:
+        default: localhost:8080
+        description: The default listen address. Set ADDR to change it.
+
+tags:
+  - name: health
+    description: Liveness, for whatever supervises the process.
+  - name: webhooks
+    description: Inbound Forgejo webhook deliveries.
+
+paths:
+  /healthz:
+    get:
+      operationId: health
+      summary: Liveness
+      description: Answers 200 unconditionally while the process is up.
+      tags: [health]
+      security: []
+      responses:
+        "200":
+          description: The process is up.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    const: ok
+
+  /webhooks/forgejo:
+    post:
+      operationId: forgejoIssueWebhook
+      summary: Receive a Forgejo "issues" webhook delivery
+      description: |
+        Configure this URL as a Forgejo webhook (repository-level, or
+        instance-wide via Admin → System Webhooks, to cover every repo
+        without per-repo setup) for the "Issues" event, with the same
+        secret as FORGEJO_WEBHOOK_SECRET.
+
+        Every delivery must carry a valid HMAC-SHA256 signature, hex
+        encoded, of the raw body keyed by that secret, in either
+        X-Forgejo-Signature or X-Gitea-Signature.
+
+        Deliveries for events other than "issues" (identified by
+        X-Forgejo-Event/X-Gitea-Event) are accepted and ignored with 204 —
+        Forgejo has no per-event webhook URL, so this endpoint has to
+        tolerate being sent everything a webhook is configured to send.
+      tags: [webhooks]
+      security:
+        - webhookSignature: []
+      parameters:
+        - name: X-Forgejo-Event
+          in: header
+          required: false
+          schema:
+            type: string
+          description: |
+            The event type. X-Gitea-Event is accepted as a fallback. Only
+            "issues" triggers a sync; anything else is ignored.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: |
+                A Forgejo issue webhook payload — action, the issue, and the
+                repository it belongs to. See Forgejo's own webhook
+                documentation for the full shape; only the fields this tool
+                reads are relevant here.
+      responses:
+        "202":
+          description: The event was processed (or matched no assignee filter).
+        "204":
+          description: The event's type isn't "issues" — ignored.
+        "400":
+          description: The body isn't valid JSON, or isn't a recognizable issue payload.
+        "401":
+          description: The signature is missing or doesn't match.
+        "500":
+          description: The CalDAV upsert failed.
+
+components:
+  securitySchemes:
+    webhookSignature:
+      type: apiKey
+      in: header
+      name: X-Forgejo-Signature
+      description: |
+        HMAC-SHA256 of the raw request body, hex encoded, keyed by
+        FORGEJO_WEBHOOK_SECRET. X-Gitea-Signature is accepted the same way.
