@@ -1,0 +1,18 @@
+# `redocly lint` is invoked bare rather than pointed at a file, so the hook
+# and CI cannot end up checking something different from what's listed here.
+apis:
+  forgejo-caldav-sync:
+    root: api/openapi.yaml
+
+# Strict because the spec is new — `recommended` promotes nothing to an
+# error, so a job left on it passes with a screen full of warnings.
+extends:
+  - recommended-strict
+
+rules:
+  # /healthz ignores the request and answers 200 to anything. There's no 4xx
+  # to document, and inventing one to satisfy the rule would be the first
+  # lie in the file.
+  operation-4xx-response: off
+
+telemetry: off
