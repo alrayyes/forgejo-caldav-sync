@@ -3,6 +3,7 @@
 [![CI](https://github.com/alrayyes/forgejo-caldav-sync/actions/workflows/ci.yml/badge.svg)](https://github.com/alrayyes/forgejo-caldav-sync/actions/workflows/ci.yml)
 [![Codecov](https://codecov.io/gh/alrayyes/forgejo-caldav-sync/graph/badge.svg)](https://codecov.io/gh/alrayyes/forgejo-caldav-sync)
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
+[![Go Reference](https://pkg.go.dev/badge/github.com/alrayyes/forgejo-caldav-sync.svg)](https://pkg.go.dev/github.com/alrayyes/forgejo-caldav-sync)
 
 Syncs Forgejo issues into a CalDAV calendar as VTODOs — open issues appear
 as tasks, closed issues get marked done, and there's nothing to re-invoke:
