@@ -25,6 +25,7 @@ func NewMux(sink sync.CalendarSink, webhookSecret, assignee string) *http.ServeM
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", handleHealth)
 	mux.HandleFunc("POST /webhooks/forgejo", handleWebhook(sink, webhookSecret, assignee))
+
 	return mux
 }
 
@@ -37,28 +38,33 @@ func handleWebhook(sink sync.CalendarSink, webhookSecret, assignee string) http.
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "reading body", http.StatusBadRequest)
+
 			return
 		}
 
 		if !hasValidSignature(webhookSecret, body, r.Header) {
 			http.Error(w, "invalid signature", http.StatusUnauthorized)
+
 			return
 		}
 
 		event := firstHeader(r.Header, "X-Forgejo-Event", "X-Gitea-Event")
 		if event != "issues" {
 			w.WriteHeader(http.StatusNoContent)
+
 			return
 		}
 
 		_, issue, err := forgejo.ParseIssueWebhook(body)
 		if err != nil {
 			http.Error(w, "malformed payload", http.StatusBadRequest)
+
 			return
 		}
 
 		if err := sync.HandleIssueEvent(r.Context(), sink, assignee, issue); err != nil {
 			http.Error(w, "sync failed", http.StatusInternalServerError)
+
 			return
 		}
 
@@ -72,6 +78,7 @@ func hasValidSignature(secret string, body []byte, header http.Header) bool {
 			return forgejo.VerifySignature(secret, body, sig)
 		}
 	}
+
 	return false
 }
 
@@ -81,6 +88,7 @@ func firstHeader(header http.Header, names ...string) string {
 			return v
 		}
 	}
+
 	return ""
 }
 

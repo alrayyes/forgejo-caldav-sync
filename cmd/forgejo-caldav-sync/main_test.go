@@ -38,7 +38,7 @@ func startHealthzServer(t *testing.T, status int) string {
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(status)
 	})
-	go func() { _ = http.Serve(ln, mux) }() //nolint:errcheck,gosec // server lifetime is the test's
+	go func() { _ = http.Serve(ln, mux) }() //nolint:gosec // server lifetime is the test's
 
 	return fmt.Sprintf(":%d", ln.Addr().(*net.TCPAddr).Port)
 }

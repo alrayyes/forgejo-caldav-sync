@@ -11,12 +11,18 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/alrayyes/forgejo-caldav-sync/internal/sync"
 )
+
+// errUnexpectedStatus is wrapped with the actual status text rather than
+// building a one-off dynamic error, so callers can match on it with
+// errors.Is if they ever need to.
+var errUnexpectedStatus = errors.New("unexpected status")
 
 // defaultPageSize matches the search API's own default page size, so a
 // caller that never overrides Client.PageSize gets the API's natural
@@ -82,13 +88,14 @@ func (c *Client) searchIssuesPage(ctx context.Context, page, limit int) ([]searc
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("forgejo: searching issues (page %d): unexpected status %s", page, resp.Status)
+		return nil, fmt.Errorf("forgejo: searching issues (page %d): %w: %s", page, errUnexpectedStatus, resp.Status)
 	}
 
 	var batch []searchResultIssue
 	if err := json.NewDecoder(resp.Body).Decode(&batch); err != nil {
 		return nil, fmt.Errorf("forgejo: decoding issue search response: %w", err)
 	}
+
 	return batch, nil
 }
 
@@ -116,6 +123,7 @@ func (wi wireIssueCore) toIssue(repoFullName string) sync.Issue {
 	for i, a := range wi.Assignees {
 		assignees[i] = a.Login
 	}
+
 	return sync.Issue{
 		RepoFullName: repoFullName,
 		Number:       wi.Number,
@@ -155,6 +163,7 @@ func ParseIssueWebhook(body []byte) (action string, issue sync.Issue, err error)
 	if err := json.Unmarshal(body, &payload); err != nil {
 		return "", sync.Issue{}, fmt.Errorf("forgejo: decoding issue webhook: %w", err)
 	}
+
 	return payload.Action, payload.Issue.toIssue(payload.Repository.FullName), nil
 }
 
@@ -166,5 +175,6 @@ func VerifySignature(secret string, body []byte, signature string) bool {
 	mac := hmac.New(sha256.New, []byte(secret))
 	mac.Write(body)
 	expected := hex.EncodeToString(mac.Sum(nil))
+
 	return hmac.Equal([]byte(expected), []byte(signature))
 }

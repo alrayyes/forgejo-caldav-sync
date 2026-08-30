@@ -61,6 +61,7 @@ var nonAlnum = regexp.MustCompile(`[^a-z0-9]+`)
 func TodoUID(repoFullName string, number int64) string {
 	slug := nonAlnum.ReplaceAllString(strings.ToLower(repoFullName), "-")
 	slug = strings.Trim(slug, "-")
+
 	return fmt.Sprintf("forgejo-caldav-sync-%s-%d", slug, number)
 }
 
@@ -80,6 +81,7 @@ func ToTodo(issue Issue) Todo {
 	if todo.Done {
 		todo.Completed = issue.ClosedAt
 	}
+
 	return todo
 }
 
@@ -98,6 +100,7 @@ func FilterByAssignee(issues []Issue, username string) []Issue {
 			filtered = append(filtered, issue)
 		}
 	}
+
 	return filtered
 }
 
@@ -107,6 +110,7 @@ func hasAssignee(issue Issue, username string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -127,6 +131,7 @@ func Reconcile(ctx context.Context, src IssueSource, sink CalendarSink, assignee
 			return 0, fmt.Errorf("sync: upserting issue %s#%d: %w", issue.RepoFullName, issue.Number, err)
 		}
 	}
+
 	return len(matched), nil
 }
 
@@ -141,5 +146,6 @@ func HandleIssueEvent(ctx context.Context, sink CalendarSink, assignee string, i
 	if err := sink.Upsert(ctx, ToTodo(issue)); err != nil {
 		return fmt.Errorf("sync: upserting issue %s#%d: %w", issue.RepoFullName, issue.Number, err)
 	}
+
 	return nil
 }

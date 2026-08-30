@@ -29,12 +29,18 @@ import (
 	"github.com/alrayyes/forgejo-caldav-sync/internal/sync"
 )
 
+// errUnexpectedStatus is wrapped with the actual status text rather than
+// building a one-off dynamic error, so callers can match on it with
+// errors.Is if they ever need to.
+var errUnexpectedStatus = errors.New("unexpected status")
+
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
 		if err := runHealthcheck(); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+
 		return
 	}
 
@@ -48,8 +54,9 @@ func main() {
 func runHealthcheck() error {
 	cfg, err := config.Load(os.Getenv)
 	if err != nil {
-		return err
+		return fmt.Errorf("healthcheck: loading config: %w", err)
 	}
+
 	return checkHealth(cfg.Addr)
 }
 
@@ -64,15 +71,16 @@ func checkHealth(addr string) error {
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("healthcheck: unexpected status %s", resp.Status)
+		return fmt.Errorf("healthcheck: %w: %s", errUnexpectedStatus, resp.Status)
 	}
+
 	return nil
 }
 
 func run(ctx context.Context, logger *slog.Logger) error {
 	cfg, err := config.Load(os.Getenv)
 	if err != nil {
-		return err
+		return fmt.Errorf("loading config: %w", err)
 	}
 
 	fg := forgejo.NewClient(cfg.ForgejoBaseURL, cfg.ForgejoToken)
@@ -113,6 +121,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("http server: %w", err)
 	}
+
 	return nil
 }
 
@@ -138,6 +147,7 @@ func reconcileOnce(ctx context.Context, logger *slog.Logger, src sync.IssueSourc
 	n, err := sync.Reconcile(ctx, src, sink, assignee)
 	if err != nil {
 		logger.Error("reconcile failed, retrying next interval", "error", err)
+
 		return
 	}
 	logger.Info("reconciled", "synced", n)

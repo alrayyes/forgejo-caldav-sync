@@ -26,35 +26,42 @@ func (f *fakeSink) Upsert(_ context.Context, todo sync.Todo) error {
 		return f.err
 	}
 	f.upserted = append(f.upserted, todo)
+
 	return nil
 }
 
-const webhookSecret = "test-secret"
+const (
+	webhookSecret = "test-secret"
+	testRepo      = "alice/widgets"
+	testAssignee  = "bob"
+)
 
 func sign(body []byte) string {
 	mac := hmac.New(sha256.New, []byte(webhookSecret))
 	mac.Write(body)
+
 	return hex.EncodeToString(mac.Sum(nil))
 }
 
-func issuePayload(t *testing.T, action, repo, assignee string) []byte {
+func issuePayload(t *testing.T) []byte {
 	t.Helper()
 	payload := map[string]any{
-		"action": action,
+		"action": "opened",
 		"issue": map[string]any{
 			"number":   1,
 			"title":    "Test issue",
 			"body":     "body",
-			"html_url": "https://forge.example.com/" + repo + "/issues/1",
+			"html_url": "https://forge.example.com/" + testRepo + "/issues/1",
 			"state":    "open",
 			"assignees": []map[string]any{
-				{"login": assignee},
+				{"login": testAssignee},
 			},
 		},
-		"repository": map[string]any{"full_name": repo},
+		"repository": map[string]any{"full_name": testRepo},
 	}
 	body, err := json.Marshal(payload)
 	require.NoError(t, err)
+
 	return body
 }
 
@@ -71,7 +78,7 @@ func TestHealthzAnswersOK(t *testing.T) {
 func TestWebhookUpsertsOnValidIssueEvent(t *testing.T) {
 	sink := &fakeSink{}
 	mux := api.NewMux(sink, webhookSecret, "")
-	body := issuePayload(t, "opened", "alice/widgets", "bob")
+	body := issuePayload(t)
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/webhooks/forgejo", bytes.NewReader(body))
@@ -86,7 +93,7 @@ func TestWebhookUpsertsOnValidIssueEvent(t *testing.T) {
 func TestWebhookRejectsAMissingSignature(t *testing.T) {
 	sink := &fakeSink{}
 	mux := api.NewMux(sink, webhookSecret, "")
-	body := issuePayload(t, "opened", "alice/widgets", "bob")
+	body := issuePayload(t)
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/webhooks/forgejo", bytes.NewReader(body))
@@ -100,7 +107,7 @@ func TestWebhookRejectsAMissingSignature(t *testing.T) {
 func TestWebhookRejectsAnIncorrectSignature(t *testing.T) {
 	sink := &fakeSink{}
 	mux := api.NewMux(sink, webhookSecret, "")
-	body := issuePayload(t, "opened", "alice/widgets", "bob")
+	body := issuePayload(t)
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/webhooks/forgejo", bytes.NewReader(body))
@@ -115,7 +122,7 @@ func TestWebhookRejectsAnIncorrectSignature(t *testing.T) {
 func TestWebhookIgnoresNonIssueEvents(t *testing.T) {
 	sink := &fakeSink{}
 	mux := api.NewMux(sink, webhookSecret, "")
-	body := issuePayload(t, "opened", "alice/widgets", "bob")
+	body := issuePayload(t)
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/webhooks/forgejo", bytes.NewReader(body))
@@ -130,7 +137,7 @@ func TestWebhookIgnoresNonIssueEvents(t *testing.T) {
 func TestWebhookSkipsIssuesNotMatchingTheAssigneeFilter(t *testing.T) {
 	sink := &fakeSink{}
 	mux := api.NewMux(sink, webhookSecret, "alice")
-	body := issuePayload(t, "opened", "alice/widgets", "bob")
+	body := issuePayload(t)
 
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/webhooks/forgejo", bytes.NewReader(body))

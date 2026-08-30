@@ -10,10 +10,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	errBoom              = errors.New("boom")
+	errCalDAVUnreachable = errors.New("caldav unreachable")
+)
+
 func dueAt(t *testing.T, s string) *time.Time {
 	t.Helper()
 	tm, err := time.Parse(time.RFC3339, s)
 	require.NoError(t, err)
+
 	return &tm
 }
 
@@ -108,6 +114,7 @@ func (f *fakeSink) Upsert(_ context.Context, todo sync.Todo) error {
 		return f.err
 	}
 	f.upserted = append(f.upserted, todo)
+
 	return nil
 }
 
@@ -140,7 +147,7 @@ func TestReconcileNoFilterSyncsEverything(t *testing.T) {
 }
 
 func TestReconcilePropagatesSourceError(t *testing.T) {
-	src := fakeSource{err: errors.New("boom")}
+	src := fakeSource{err: errBoom}
 	sink := &fakeSink{}
 
 	_, err := sync.Reconcile(context.Background(), src, sink, "")
@@ -153,7 +160,7 @@ func TestReconcileStopsOnFirstSinkError(t *testing.T) {
 		{RepoFullName: "alice/widgets", Number: 1},
 		{RepoFullName: "alice/widgets", Number: 2},
 	}}
-	sink := &fakeSink{err: errors.New("caldav unreachable")}
+	sink := &fakeSink{err: errCalDAVUnreachable}
 
 	_, err := sync.Reconcile(context.Background(), src, sink, "")
 

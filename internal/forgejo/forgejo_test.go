@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/alrayyes/forgejo-caldav-sync/internal/forgejo"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,11 +30,15 @@ func TestListIssuesReturnsMappedIssuesAcrossPages(t *testing.T) {
 	// empty page is what stops pagination.
 	var requests int
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, "token test-token", r.Header.Get("Authorization"))
+		// assert, not require: require.FailNow from inside a handler
+		// goroutine doesn't stop the test the way it would on the test's
+		// own goroutine.
+		assert.Equal(t, "token test-token", r.Header.Get("Authorization"))
 		requests++
 		w.Header().Set("Content-Type", "application/json")
 		if r.URL.Query().Get("page") == "2" {
 			_ = json.NewEncoder(w).Encode([]map[string]any{})
+
 			return
 		}
 		_ = json.NewEncoder(w).Encode(page1)

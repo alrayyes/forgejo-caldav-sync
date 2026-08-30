@@ -6,15 +6,20 @@ package caldav
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 
-	ics "github.com/arran4/golang-ical"
-
 	"github.com/alrayyes/forgejo-caldav-sync/internal/sync"
+	ics "github.com/arran4/golang-ical"
 )
+
+// errUnexpectedStatus is wrapped with the actual status text rather than
+// building a one-off dynamic error, so callers can match on it with
+// errors.Is if they ever need to.
+var errUnexpectedStatus = errors.New("unexpected status")
 
 // Client talks to one CalDAV collection (a Baïkal task list, or any other
 // standards-compliant CalDAV server) over basic auth.
@@ -32,6 +37,7 @@ func NewClient(baseURL, username, password string) *Client {
 	if !strings.HasSuffix(baseURL, "/") {
 		baseURL += "/"
 	}
+
 	return &Client{
 		collectionURL: baseURL,
 		username:      username,
@@ -73,7 +79,7 @@ func (c *Client) EnsureCollection(ctx context.Context) error {
 	case resp.StatusCode == http.StatusMethodNotAllowed, resp.StatusCode == http.StatusConflict:
 		return nil // already exists
 	default:
-		return fmt.Errorf("caldav: creating collection: unexpected status %s", resp.Status)
+		return fmt.Errorf("caldav: creating collection: %w: %s", errUnexpectedStatus, resp.Status)
 	}
 }
 
@@ -96,8 +102,9 @@ func (c *Client) Upsert(ctx context.Context, todo sync.Todo) error {
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("caldav: upserting %s: unexpected status %s", todo.UID, resp.Status)
+		return fmt.Errorf("caldav: upserting %s: %w: %s", todo.UID, errUnexpectedStatus, resp.Status)
 	}
+
 	return nil
 }
 
