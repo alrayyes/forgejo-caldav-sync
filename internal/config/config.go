@@ -2,10 +2,16 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 )
+
+// errMissingRequiredEnv is wrapped with the actual comma-joined variable
+// names rather than building a one-off dynamic error, so callers can match
+// on it with errors.Is if they ever need to.
+var errMissingRequiredEnv = errors.New("config: missing required environment variables")
 
 // Config is the fully resolved, validated set of settings this tool needs
 // to run.
@@ -42,6 +48,7 @@ func Load(getenv func(string) string) (Config, error) {
 		if v == "" {
 			missing = append(missing, key)
 		}
+
 		return v
 	}
 
@@ -53,7 +60,7 @@ func Load(getenv func(string) string) (Config, error) {
 	cfg.CalDAVPassword = required("CALDAV_PASSWORD")
 
 	if len(missing) > 0 {
-		return Config{}, fmt.Errorf("config: missing required environment variables: %s", strings.Join(missing, ", "))
+		return Config{}, fmt.Errorf("%w: %s", errMissingRequiredEnv, strings.Join(missing, ", "))
 	}
 
 	cfg.Assignee = getenv("ASSIGNEE")

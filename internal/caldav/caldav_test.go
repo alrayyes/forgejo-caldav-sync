@@ -18,6 +18,7 @@ func dueAt(t *testing.T, s string) *time.Time {
 	t.Helper()
 	tm, err := time.Parse(time.RFC3339, s)
 	require.NoError(t, err)
+
 	return &tm
 }
 

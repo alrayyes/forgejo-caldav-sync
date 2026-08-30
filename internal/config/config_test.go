@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"maps"
 	"testing"
 	"time"
 
@@ -17,9 +18,8 @@ func fakeEnv(overrides map[string]string) func(string) string {
 		"CALDAV_USERNAME":        "alice",
 		"CALDAV_PASSWORD":        "caldav-password",
 	}
-	for k, v := range overrides {
-		base[k] = v
-	}
+	maps.Copy(base, overrides)
+
 	return func(key string) string { return base[key] }
 }
 
