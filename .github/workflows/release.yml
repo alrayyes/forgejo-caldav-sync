@@ -44,6 +44,11 @@ jobs:
     needs: release
     if: needs.release.outputs.published == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -53,9 +58,20 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - run: |
+      - id: push
+        run: |
           image=ghcr.io/${{ github.repository }}
           version=${{ needs.release.outputs.version }}
           docker build -t "$image:$version" -t "$image:latest" .
-          docker push "$image:$version"
+          push_output=$(docker push "$image:$version")
+          echo "$push_output"
+          digest=$(echo "$push_output" | grep -oP 'sha256:[0-9a-f]{64}')
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
           docker push "$image:latest"
+      # Ties the image pushed above to this workflow run with a signed SLSA
+      # Build L2 attestation — free, no cosign key handling required.
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ghcr.io/${{ github.repository }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
