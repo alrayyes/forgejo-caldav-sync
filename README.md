@@ -54,8 +54,9 @@ account's full ticket list.
 
 ## Installation
 
-Pull the published image — every merge to `main` releases a new version to
-`ghcr.io`, tagged with both the version and `latest`:
+Pull the published image — a merge to `main` carrying a `feat`/`fix` commit
+releases a new version to `ghcr.io`, tagged with both the version and
+`latest`:
 
 ```sh
 mkdir forgejo-caldav-sync && cd forgejo-caldav-sync
