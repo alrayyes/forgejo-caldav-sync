@@ -1,0 +1,26 @@
+name: Bug report
+description: Report something that isn't working
+labels:
+  - kind/bug
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What's broken?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: The exact steps that trigger the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened instead?
+    validations:
+      required: true
