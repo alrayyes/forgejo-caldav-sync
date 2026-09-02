@@ -1,0 +1,44 @@
+schema: spec-driven
+
+context: |
+  Go 1.27 service on github.com/alrayyes/forgejo-caldav-sync, hexagonal
+  layout: internal/sync is the domain (Issue/Todo types, mapping,
+  filtering, orchestration) against two interfaces it owns; internal/forgejo
+  and internal/caldav adapt them to the real Forgejo API and a CalDAV
+  server; internal/api is the inbound HTTP adapter; cmd/forgejo-caldav-sync
+  is the composition root. Every setting is an environment variable, no
+  config file or flags — see cmd/forgejo-caldav-sync/main.go's doc comment.
+  Conventional Commits, semantic-release, ships a Docker image to ghcr.io.
+  Global conventions live in ~/.config/claude/CLAUDE.md and its rules/*.md
+  (git.higherlearning.eu-authored, apply the same way to this GitHub repo).
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Example:
+#   context: |
+#     Tech stack: TypeScript, React, Node.js
+#     We use conventional commits
+#     Domain: e-commerce platform
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing

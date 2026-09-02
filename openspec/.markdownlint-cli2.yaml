@@ -1,0 +1,5 @@
+# openspec's own artifact template (proposal.md, tasks.md, design.md,
+# spec.md) starts each file with a level-2 section header by convention —
+# not a heading style choice, the tool's authoritative shape.
+config:
+  first-line-heading: false
