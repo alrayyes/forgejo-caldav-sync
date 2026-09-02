@@ -5,12 +5,12 @@ pre-commit:
   jobs:
     # GOTOOLCHAIN pinned: golangci-lint's own bundled type-checker panics
     # ("file requires newer Go version") when the ambient `go` on PATH is
-    # newer than the one it was built against — this repo's `go 1.26.6`
+    # newer than the one it was built against — this repo's `go 1.27.0`
     # sidesteps that regardless of what's installed system-wide.
     - name: golangci-lint fmt
       glob: "*.go"
       env:
-        GOTOOLCHAIN: go1.26.6
+        GOTOOLCHAIN: go1.27.0
       run: golangci-lint fmt {staged_files}
       stage_fixed: true
 
@@ -51,7 +51,7 @@ pre-push:
 
     - name: golangci-lint run
       env:
-        GOTOOLCHAIN: go1.26.6
+        GOTOOLCHAIN: go1.27.0
       run: golangci-lint run ./...
 
     - name: hadolint

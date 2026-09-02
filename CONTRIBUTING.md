@@ -2,7 +2,7 @@
 
 ## Toolchain
 
-- Go 1.26+
+- Go 1.27+
 - Docker, for building the image and running the Dockerfile lint
 - [Bun](https://bun.sh) 1.3.14, for the documentation tooling (Prettier,
   markdownlint, commitlint) — nothing here is a JavaScript project

@@ -50,7 +50,7 @@ account's full ticket list.
 - A CalDAV server reachable from wherever this runs, and a collection (task
   list) URL on it — this tool creates the collection on first run if it
   doesn't already exist.
-- Docker (or Go 1.26+, if building from source).
+- Docker (or Go 1.27+, if building from source).
 
 ## Installation
 
