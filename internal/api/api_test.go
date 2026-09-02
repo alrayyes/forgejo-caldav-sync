@@ -65,7 +65,27 @@ func issuePayload(t *testing.T) []byte {
 	return body
 }
 
-func TestHealthzAnswersOK(t *testing.T) {
+// postWebhook sends body to /webhooks/forgejo through sink's mux, with the
+// given event type and signature headers, and returns the recorded
+// response.
+func postWebhook(t *testing.T, sink *fakeSink, assignee, event string, body, signature []byte) *httptest.ResponseRecorder {
+	t.Helper()
+	mux := api.NewMux(sink, webhookSecret, assignee)
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/webhooks/forgejo", bytes.NewReader(body))
+	if event != "" {
+		req.Header.Set("X-Forgejo-Event", event)
+	}
+	if signature != nil {
+		req.Header.Set("X-Forgejo-Signature", string(signature))
+	}
+	mux.ServeHTTP(rec, req)
+
+	return rec
+}
+
+func TestHealthz(t *testing.T) {
 	t.Parallel()
 
 	mux := api.NewMux(&fakeSink{}, webhookSecret, "")
@@ -77,102 +97,117 @@ func TestHealthzAnswersOK(t *testing.T) {
 	require.Equal(t, http.StatusOK, rec.Code)
 }
 
-func TestWebhookUpsertsOnValidIssueEvent(t *testing.T) {
+func TestWebhookValidIssueEvent(t *testing.T) {
 	t.Parallel()
-
-	sink := &fakeSink{}
-	mux := api.NewMux(sink, webhookSecret, "")
 	body := issuePayload(t)
 
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/webhooks/forgejo", bytes.NewReader(body))
-	req.Header.Set("X-Forgejo-Event", "issues")
-	req.Header.Set("X-Forgejo-Signature", sign(body))
-	mux.ServeHTTP(rec, req)
+	t.Run("responds 202 Accepted", func(t *testing.T) {
+		t.Parallel()
+		sink := &fakeSink{}
+		rec := postWebhook(t, sink, "", "issues", body, []byte(sign(body)))
 
-	require.Equal(t, http.StatusAccepted, rec.Code)
-	require.Len(t, sink.upserted, 1)
+		require.Equal(t, http.StatusAccepted, rec.Code)
+	})
+
+	t.Run("upserts the issue", func(t *testing.T) {
+		t.Parallel()
+		sink := &fakeSink{}
+		postWebhook(t, sink, "", "issues", body, []byte(sign(body)))
+
+		require.Len(t, sink.upserted, 1)
+	})
 }
 
-func TestWebhookRejectsAMissingSignature(t *testing.T) {
+func TestWebhookMissingSignature(t *testing.T) {
 	t.Parallel()
-
-	sink := &fakeSink{}
-	mux := api.NewMux(sink, webhookSecret, "")
 	body := issuePayload(t)
 
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/webhooks/forgejo", bytes.NewReader(body))
-	req.Header.Set("X-Forgejo-Event", "issues")
-	mux.ServeHTTP(rec, req)
+	t.Run("responds 401 Unauthorized", func(t *testing.T) {
+		t.Parallel()
+		sink := &fakeSink{}
+		rec := postWebhook(t, sink, "", "issues", body, nil)
 
-	require.Equal(t, http.StatusUnauthorized, rec.Code)
-	require.Empty(t, sink.upserted)
+		require.Equal(t, http.StatusUnauthorized, rec.Code)
+	})
+
+	t.Run("does not upsert", func(t *testing.T) {
+		t.Parallel()
+		sink := &fakeSink{}
+		postWebhook(t, sink, "", "issues", body, nil)
+
+		require.Empty(t, sink.upserted)
+	})
 }
 
-func TestWebhookRejectsAnIncorrectSignature(t *testing.T) {
+func TestWebhookIncorrectSignature(t *testing.T) {
 	t.Parallel()
-
-	sink := &fakeSink{}
-	mux := api.NewMux(sink, webhookSecret, "")
 	body := issuePayload(t)
 
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/webhooks/forgejo", bytes.NewReader(body))
-	req.Header.Set("X-Forgejo-Event", "issues")
-	req.Header.Set("X-Forgejo-Signature", "0000")
-	mux.ServeHTTP(rec, req)
+	t.Run("responds 401 Unauthorized", func(t *testing.T) {
+		t.Parallel()
+		sink := &fakeSink{}
+		rec := postWebhook(t, sink, "", "issues", body, []byte("0000"))
 
-	require.Equal(t, http.StatusUnauthorized, rec.Code)
-	require.Empty(t, sink.upserted)
+		require.Equal(t, http.StatusUnauthorized, rec.Code)
+	})
+
+	t.Run("does not upsert", func(t *testing.T) {
+		t.Parallel()
+		sink := &fakeSink{}
+		postWebhook(t, sink, "", "issues", body, []byte("0000"))
+
+		require.Empty(t, sink.upserted)
+	})
 }
 
-func TestWebhookIgnoresNonIssueEvents(t *testing.T) {
+func TestWebhookNonIssueEvent(t *testing.T) {
 	t.Parallel()
-
-	sink := &fakeSink{}
-	mux := api.NewMux(sink, webhookSecret, "")
 	body := issuePayload(t)
 
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/webhooks/forgejo", bytes.NewReader(body))
-	req.Header.Set("X-Forgejo-Event", "push")
-	req.Header.Set("X-Forgejo-Signature", sign(body))
-	mux.ServeHTTP(rec, req)
+	t.Run("responds 204 No Content", func(t *testing.T) {
+		t.Parallel()
+		sink := &fakeSink{}
+		rec := postWebhook(t, sink, "", "push", body, []byte(sign(body)))
 
-	require.Equal(t, http.StatusNoContent, rec.Code)
-	require.Empty(t, sink.upserted)
+		require.Equal(t, http.StatusNoContent, rec.Code)
+	})
+
+	t.Run("does not upsert", func(t *testing.T) {
+		t.Parallel()
+		sink := &fakeSink{}
+		postWebhook(t, sink, "", "push", body, []byte(sign(body)))
+
+		require.Empty(t, sink.upserted)
+	})
 }
 
-func TestWebhookSkipsIssuesNotMatchingTheAssigneeFilter(t *testing.T) {
+func TestWebhookAssigneeFilterExcludesTheIssue(t *testing.T) {
 	t.Parallel()
-
-	sink := &fakeSink{}
-	mux := api.NewMux(sink, webhookSecret, "alice")
 	body := issuePayload(t)
 
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/webhooks/forgejo", bytes.NewReader(body))
-	req.Header.Set("X-Forgejo-Event", "issues")
-	req.Header.Set("X-Forgejo-Signature", sign(body))
-	mux.ServeHTTP(rec, req)
+	t.Run("responds 202 Accepted", func(t *testing.T) {
+		t.Parallel()
+		sink := &fakeSink{}
+		rec := postWebhook(t, sink, "alice", "issues", body, []byte(sign(body)))
 
-	require.Equal(t, http.StatusAccepted, rec.Code)
-	require.Empty(t, sink.upserted)
+		require.Equal(t, http.StatusAccepted, rec.Code)
+	})
+
+	t.Run("does not upsert", func(t *testing.T) {
+		t.Parallel()
+		sink := &fakeSink{}
+		postWebhook(t, sink, "alice", "issues", body, []byte(sign(body)))
+
+		require.Empty(t, sink.upserted)
+	})
 }
 
-func TestWebhookRejectsMalformedJSON(t *testing.T) {
+func TestWebhookMalformedJSON(t *testing.T) {
 	t.Parallel()
-
-	sink := &fakeSink{}
-	mux := api.NewMux(sink, webhookSecret, "")
 	body := []byte("not json")
+	sink := &fakeSink{}
 
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/webhooks/forgejo", bytes.NewReader(body))
-	req.Header.Set("X-Forgejo-Event", "issues")
-	req.Header.Set("X-Forgejo-Signature", sign(body))
-	mux.ServeHTTP(rec, req)
+	rec := postWebhook(t, sink, "", "issues", body, []byte(sign(body)))
 
 	require.Equal(t, http.StatusBadRequest, rec.Code)
 }

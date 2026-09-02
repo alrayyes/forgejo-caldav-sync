@@ -3,17 +3,22 @@ package forgejo_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/alrayyes/forgejo-caldav-sync/internal/forgejo"
+	"github.com/alrayyes/forgejo-caldav-sync/internal/sync"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestListIssuesReturnsMappedIssuesAcrossPages(t *testing.T) {
-	t.Parallel()
+// listIssuesAcrossTwoPages runs ListIssues against a server serving one
+// issue on page 1 and an empty page 2 — a full first page (limit reached)
+// followed by an empty page is what stops pagination.
+func listIssuesAcrossTwoPages(t *testing.T) (issues []sync.Issue, requests int, err error) {
+	t.Helper()
 
 	page1 := []map[string]any{
 		{
@@ -28,9 +33,6 @@ func TestListIssuesReturnsMappedIssuesAcrossPages(t *testing.T) {
 			"repository": map[string]any{"full_name": "alice/widgets"},
 		},
 	}
-	// page 2 is empty — a full first page (limit reached) followed by an
-	// empty page is what stops pagination.
-	var requests int
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// assert, not require: require.FailNow from inside a handler
 		// goroutine doesn't stop the test the way it would on the test's
@@ -50,16 +52,66 @@ func TestListIssuesReturnsMappedIssuesAcrossPages(t *testing.T) {
 	client := forgejo.NewClient(srv.URL, "test-token")
 	client.PageSize = 1
 
-	issues, err := client.ListIssues(context.Background())
+	issues, err = client.ListIssues(context.Background())
+	if err != nil {
+		return issues, requests, fmt.Errorf("test fixture: %w", err)
+	}
 
+	return issues, requests, nil
+}
+
+func TestListIssuesPagination(t *testing.T) {
+	t.Parallel()
+
+	issues, requests, err := listIssuesAcrossTwoPages(t)
+
+	t.Run("succeeds", func(t *testing.T) {
+		t.Parallel()
+		require.NoError(t, err)
+	})
+
+	t.Run("stops at the first empty page", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, 2, requests)
+	})
+
+	t.Run("returns one issue", func(t *testing.T) {
+		t.Parallel()
+		require.Len(t, issues, 1)
+	})
+}
+
+func TestListIssuesMapping(t *testing.T) {
+	t.Parallel()
+
+	issues, _, err := listIssuesAcrossTwoPages(t)
 	require.NoError(t, err)
-	require.Equal(t, 2, requests)
 	require.Len(t, issues, 1)
-	require.Equal(t, "alice/widgets", issues[0].RepoFullName)
-	require.Equal(t, int64(1), issues[0].Number)
-	require.Equal(t, "First", issues[0].Title)
-	require.Equal(t, "open", issues[0].State)
-	require.Equal(t, []string{"alice"}, issues[0].Assignees)
+
+	t.Run("maps the repository name", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, "alice/widgets", issues[0].RepoFullName)
+	})
+
+	t.Run("maps the issue number", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, int64(1), issues[0].Number)
+	})
+
+	t.Run("maps the title", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, "First", issues[0].Title)
+	})
+
+	t.Run("maps the state", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, "open", issues[0].State)
+	})
+
+	t.Run("maps the assignees", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, []string{"alice"}, issues[0].Assignees)
+	})
 }
 
 func TestListIssuesReturnsErrorOnNonSuccessStatus(t *testing.T) {
@@ -85,7 +137,22 @@ func TestVerifySignatureAcceptsAMatchingHMAC(t *testing.T) {
 	const validSignature = "d42142b53efbc7cf5cd20b6e074eb33707e0de3b368f698e6d6f6c824ffb8d37"
 
 	require.True(t, forgejo.VerifySignature("secret", body, validSignature))
+}
+
+func TestVerifySignatureRejectsAnIncorrectSignature(t *testing.T) {
+	t.Parallel()
+
+	body := []byte(`{"action":"opened"}`)
+
 	require.False(t, forgejo.VerifySignature("secret", body, "0000"))
+}
+
+func TestVerifySignatureRejectsAWrongSecret(t *testing.T) {
+	t.Parallel()
+
+	body := []byte(`{"action":"opened"}`)
+	const validSignature = "d42142b53efbc7cf5cd20b6e074eb33707e0de3b368f698e6d6f6c824ffb8d37"
+
 	require.False(t, forgejo.VerifySignature("wrong-secret", body, validSignature))
 }
 
@@ -108,13 +175,40 @@ func TestParseIssueWebhookMapsPayloadToAnIssue(t *testing.T) {
 
 	action, issue, err := forgejo.ParseIssueWebhook(payload)
 
-	require.NoError(t, err)
-	require.Equal(t, "closed", action)
-	require.Equal(t, "alice/widgets", issue.RepoFullName)
-	require.Equal(t, int64(7), issue.Number)
-	require.Equal(t, "closed", issue.State)
-	require.Equal(t, []string{"bob"}, issue.Assignees)
-	require.NotNil(t, issue.ClosedAt)
+	t.Run("succeeds", func(t *testing.T) {
+		t.Parallel()
+		require.NoError(t, err)
+	})
+
+	t.Run("maps the action", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, "closed", action)
+	})
+
+	t.Run("maps the repository name", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, "alice/widgets", issue.RepoFullName)
+	})
+
+	t.Run("maps the issue number", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, int64(7), issue.Number)
+	})
+
+	t.Run("maps the state", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, "closed", issue.State)
+	})
+
+	t.Run("maps the assignees", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, []string{"bob"}, issue.Assignees)
+	})
+
+	t.Run("maps the closed time", func(t *testing.T) {
+		t.Parallel()
+		require.NotNil(t, issue.ClosedAt)
+	})
 }
 
 func TestParseIssueWebhookRejectsInvalidJSON(t *testing.T) {
