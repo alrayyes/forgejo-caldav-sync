@@ -1,0 +1,14 @@
+# The Dockerfile COPYs only go.mod, go.sum, cmd and internal — nothing here
+# reaches a layer regardless — but skipping this file means the whole
+# directory streams to the daemon on every build.
+.git/
+node_modules/
+.bun-cache/
+
+*.md
+LICENSE
+SECURITY.md
+
+coverage.out
+.env
+.env.example
