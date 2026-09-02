@@ -64,6 +64,14 @@ pre-push:
     - name: go.mod
       run: go mod edit -fmt go.mod && git diff --exit-code go.mod
 
+    # Broader than the fmt+diff check above: catches a stale require, a
+    # non-canonical version string, or a go.sum entry for a module nothing
+    # imports anymore — real drift `go build`/`go test` never catch on
+    # their own. `-diff` (Go 1.23+) prints and exits non-zero without
+    # touching the file.
+    - name: go mod tidy
+      run: go mod tidy -diff
+
     - name: prettier
       run: bun run format:check
 
