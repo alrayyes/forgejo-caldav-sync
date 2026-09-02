@@ -1,0 +1,58 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: forgejo-caldav-sync
+    main: ./cmd/forgejo-caldav-sync
+    binary: forgejo-caldav-sync
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - formats: [tar.gz]
+
+checksum:
+  name_template: checksums.txt
+
+# release-please wrote the notes and created the release; goreleaser is
+# only hanging artefacts on it.
+changelog:
+  disable: true
+
+release:
+  mode: keep-existing
+
+# dockers_v2 over the older dockers/docker_manifests pair: one entry
+# builds and pushes every platform (buildx handles the manifest merge
+# itself), instead of one dockers block per arch plus a separate
+# docker_manifests block gluing them back together.
+dockers_v2:
+  - images:
+      - ghcr.io/alrayyes/forgejo-caldav-sync
+    tags:
+      - "{{ .Version }}"
+      - latest
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    dockerfile: Dockerfile
+    labels:
+      org.opencontainers.image.source: https://github.com/alrayyes/forgejo-caldav-sync
+      org.opencontainers.image.version: "{{ .Version }}"
+
+# SBOM generation is near-free here (reusing the syft integration already
+# in play) but nothing downstream consumes it yet — left commented as a
+# flip-on, not wired in unconditionally.
+# sboms:
+#   - artifacts: archive

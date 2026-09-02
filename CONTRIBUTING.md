@@ -4,6 +4,8 @@
 
 - Go 1.27+
 - Docker, for building the image and running the Dockerfile lint
+- [goreleaser](https://goreleaser.com/) 2.x, for building the binary and
+  the Docker image the same way the release pipeline does
 - [Bun](https://bun.sh) 1.3.14, for the documentation tooling (Prettier,
   markdownlint, commitlint) — nothing here is a JavaScript project
 
@@ -16,9 +18,21 @@ bun run prepare # installs the git hooks (lefthook)
 ## Building
 
 ```sh
-go build ./cmd/forgejo-caldav-sync
-docker build -t forgejo-caldav-sync .
+go build ./cmd/forgejo-caldav-sync   # for local testing — not what ships
+goreleaser build --single-target --snapshot --clean
 ```
+
+The Docker image isn't built with a plain `docker build .` anymore —
+goreleaser cross-compiles the binary first and the Dockerfile only
+`COPY`s it in, so building the image the same way the release does needs
+goreleaser too:
+
+```sh
+goreleaser release --snapshot --clean --skip=publish
+```
+
+That builds every release target (Linux and macOS, amd64 and arm64) and
+both Docker image platforms, without pushing anything.
 
 ## Testing
 
@@ -40,6 +54,7 @@ golangci-lint fmt ./...   # gofumpt + goimports
 go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./...
 go mod tidy -diff
 docker run --rm -i hadolint/hadolint:v2.15.1@sha256:32dac94127fd60b7b7e3fbfc65e1383b9b5e25c9bfd7b8536de7a539fe68a12d < Dockerfile
+goreleaser check
 bun run format:check      # prettier, markdown and yaml
 bun run lint:md           # markdownlint
 bun run lint:api          # redocly, against api/openapi.yaml
@@ -102,8 +117,12 @@ check standing between a badly titled pull request and a bad message on
 `main`.
 
 Once a pull request's checks are green, squash-merge it and delete the
-branch. [semantic-release](https://semantic-release.gitbook.io/) reads the
-Conventional Commits on `main` and, on the next push, tags the release,
-writes `CHANGELOG.md`, creates the GitHub release, and builds and pushes the
-image to `ghcr.io/alrayyes/forgejo-caldav-sync`, tagged with both the
-version and `latest`. Nobody picks a version by hand.
+branch. [release-please](https://github.com/googleapis/release-please)
+reads the Conventional Commits on `main` and keeps a release pull request
+open with the next version and `CHANGELOG.md` entry; merging that pull
+request (auto-merged the moment its own checks pass) tags the release and
+creates the GitHub release. That tag then drives
+[goreleaser](https://goreleaser.com/), which cross-compiles the binary for
+Linux and macOS (amd64 and arm64), and builds and pushes a multi-arch
+Docker image to `ghcr.io/alrayyes/forgejo-caldav-sync`, tagged with both
+the version and `latest`. Nobody picks a version by hand.

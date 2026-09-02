@@ -6,11 +6,14 @@ context: |
   filtering, orchestration) against two interfaces it owns; internal/forgejo
   and internal/caldav adapt them to the real Forgejo API and a CalDAV
   server; internal/api is the inbound HTTP adapter; cmd/forgejo-caldav-sync
-  is the composition root. Every setting is an environment variable, no
-  config file or flags — see cmd/forgejo-caldav-sync/main.go's doc comment.
-  Conventional Commits, semantic-release, ships a Docker image to ghcr.io.
-  Global conventions live in ~/.config/claude/CLAUDE.md and its rules/*.md
-  (git.higherlearning.eu-authored, apply the same way to this GitHub repo).
+  is the composition root. Configuration layers flags > environment >
+  config file > defaults (spf13/cobra + spf13/viper) — every existing
+  environment variable still works unchanged. Conventional Commits;
+  release-please decides the version and cuts the release, goreleaser
+  cross-compiles the binary and builds/pushes a multi-arch Docker image to
+  ghcr.io. Global conventions live in ~/.config/claude/CLAUDE.md and its
+  rules/*.md (git.higherlearning.eu-authored, apply the same way to this
+  GitHub repo).
 
 # Project context (optional)
 # This is shown to AI when creating artifacts.
