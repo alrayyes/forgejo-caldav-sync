@@ -14,12 +14,6 @@ pre-commit:
       run: golangci-lint fmt {staged_files}
       stage_fixed: true
 
-    - name: golangci-lint run
-      glob: "*.go"
-      env:
-        GOTOOLCHAIN: go1.26.6
-      run: golangci-lint run ./...
-
     # A built-in `go` subcommand, not a third-party tool: gofmt/gofumpt never
     # touch go.mod, and `go mod tidy` does network resolution a
     # formatting-only hook shouldn't be doing.
@@ -54,6 +48,11 @@ pre-push:
   jobs:
     - name: test
       run: go test -race ./...
+
+    - name: golangci-lint run
+      env:
+        GOTOOLCHAIN: go1.26.6
+      run: golangci-lint run ./...
 
     - name: hadolint
       glob: "Dockerfile"
