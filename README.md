@@ -60,7 +60,7 @@ releases a new version to `ghcr.io`, tagged with both the version and
 
 ```sh
 mkdir forgejo-caldav-sync && cd forgejo-caldav-sync
-curl -O https://raw.githubusercontent.com/alrayyes/forgejo-caldav-sync/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/alrayyes/forgejo-caldav-sync/main/compose.yaml
 curl -O https://raw.githubusercontent.com/alrayyes/forgejo-caldav-sync/main/.env.example
 cp .env.example .env # fill in your Forgejo and CalDAV details
 docker run -d --restart unless-stopped \
