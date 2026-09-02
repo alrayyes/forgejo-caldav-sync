@@ -3,6 +3,7 @@
   "private": true,
   "description": "Not a JavaScript project. This exists so commitlint can resolve the shared config it extends, which bunx alone cannot do, and so Prettier and markdownlint are pinned like everything else.",
   "scripts": {
+    "audit": "bun audit",
     "format:check": "prettier --check \"**/*.{md,yml,yaml}\"",
     "lint:api": "redocly lint",
     "lint:md": "markdownlint-cli2",
