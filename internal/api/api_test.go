@@ -66,6 +66,8 @@ func issuePayload(t *testing.T) []byte {
 }
 
 func TestHealthzAnswersOK(t *testing.T) {
+	t.Parallel()
+
 	mux := api.NewMux(&fakeSink{}, webhookSecret, "")
 
 	rec := httptest.NewRecorder()
@@ -76,6 +78,8 @@ func TestHealthzAnswersOK(t *testing.T) {
 }
 
 func TestWebhookUpsertsOnValidIssueEvent(t *testing.T) {
+	t.Parallel()
+
 	sink := &fakeSink{}
 	mux := api.NewMux(sink, webhookSecret, "")
 	body := issuePayload(t)
@@ -91,6 +95,8 @@ func TestWebhookUpsertsOnValidIssueEvent(t *testing.T) {
 }
 
 func TestWebhookRejectsAMissingSignature(t *testing.T) {
+	t.Parallel()
+
 	sink := &fakeSink{}
 	mux := api.NewMux(sink, webhookSecret, "")
 	body := issuePayload(t)
@@ -105,6 +111,8 @@ func TestWebhookRejectsAMissingSignature(t *testing.T) {
 }
 
 func TestWebhookRejectsAnIncorrectSignature(t *testing.T) {
+	t.Parallel()
+
 	sink := &fakeSink{}
 	mux := api.NewMux(sink, webhookSecret, "")
 	body := issuePayload(t)
@@ -120,6 +128,8 @@ func TestWebhookRejectsAnIncorrectSignature(t *testing.T) {
 }
 
 func TestWebhookIgnoresNonIssueEvents(t *testing.T) {
+	t.Parallel()
+
 	sink := &fakeSink{}
 	mux := api.NewMux(sink, webhookSecret, "")
 	body := issuePayload(t)
@@ -135,6 +145,8 @@ func TestWebhookIgnoresNonIssueEvents(t *testing.T) {
 }
 
 func TestWebhookSkipsIssuesNotMatchingTheAssigneeFilter(t *testing.T) {
+	t.Parallel()
+
 	sink := &fakeSink{}
 	mux := api.NewMux(sink, webhookSecret, "alice")
 	body := issuePayload(t)
@@ -150,6 +162,8 @@ func TestWebhookSkipsIssuesNotMatchingTheAssigneeFilter(t *testing.T) {
 }
 
 func TestWebhookRejectsMalformedJSON(t *testing.T) {
+	t.Parallel()
+
 	sink := &fakeSink{}
 	mux := api.NewMux(sink, webhookSecret, "")
 	body := []byte("not json")

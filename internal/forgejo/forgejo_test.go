@@ -13,6 +13,8 @@ import (
 )
 
 func TestListIssuesReturnsMappedIssuesAcrossPages(t *testing.T) {
+	t.Parallel()
+
 	page1 := []map[string]any{
 		{
 			"number":   1,
@@ -61,6 +63,8 @@ func TestListIssuesReturnsMappedIssuesAcrossPages(t *testing.T) {
 }
 
 func TestListIssuesReturnsErrorOnNonSuccessStatus(t *testing.T) {
+	t.Parallel()
+
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
@@ -74,6 +78,8 @@ func TestListIssuesReturnsErrorOnNonSuccessStatus(t *testing.T) {
 }
 
 func TestVerifySignatureAcceptsAMatchingHMAC(t *testing.T) {
+	t.Parallel()
+
 	body := []byte(`{"action":"opened"}`)
 	// echo -n '{"action":"opened"}' | openssl dgst -sha256 -hmac "secret"
 	const validSignature = "d42142b53efbc7cf5cd20b6e074eb33707e0de3b368f698e6d6f6c824ffb8d37"
@@ -84,6 +90,8 @@ func TestVerifySignatureAcceptsAMatchingHMAC(t *testing.T) {
 }
 
 func TestParseIssueWebhookMapsPayloadToAnIssue(t *testing.T) {
+	t.Parallel()
+
 	payload := []byte(`{
 		"action": "closed",
 		"issue": {
@@ -110,6 +118,8 @@ func TestParseIssueWebhookMapsPayloadToAnIssue(t *testing.T) {
 }
 
 func TestParseIssueWebhookRejectsInvalidJSON(t *testing.T) {
+	t.Parallel()
+
 	_, _, err := forgejo.ParseIssueWebhook([]byte("not json"))
 
 	require.Error(t, err)

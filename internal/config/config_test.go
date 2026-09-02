@@ -24,6 +24,8 @@ func fakeEnv(overrides map[string]string) func(string) string {
 }
 
 func TestLoadWithOnlyRequiredVariables(t *testing.T) {
+	t.Parallel()
+
 	cfg, err := config.Load(fakeEnv(nil))
 
 	require.NoError(t, err)
@@ -39,6 +41,8 @@ func TestLoadWithOnlyRequiredVariables(t *testing.T) {
 }
 
 func TestLoadReportsEveryMissingRequiredVariable(t *testing.T) {
+	t.Parallel()
+
 	_, err := config.Load(func(string) string { return "" })
 
 	require.ErrorContains(t, err, "FORGEJO_BASE_URL")
@@ -46,6 +50,8 @@ func TestLoadReportsEveryMissingRequiredVariable(t *testing.T) {
 }
 
 func TestLoadHonorsOptionalOverrides(t *testing.T) {
+	t.Parallel()
+
 	cfg, err := config.Load(fakeEnv(map[string]string{
 		"ASSIGNEE":           "bob",
 		"ADDR":               ":9090",
@@ -59,6 +65,8 @@ func TestLoadHonorsOptionalOverrides(t *testing.T) {
 }
 
 func TestLoadRejectsAnInvalidReconcileInterval(t *testing.T) {
+	t.Parallel()
+
 	_, err := config.Load(fakeEnv(map[string]string{"RECONCILE_INTERVAL": "not-a-duration"}))
 
 	require.ErrorContains(t, err, "RECONCILE_INTERVAL")

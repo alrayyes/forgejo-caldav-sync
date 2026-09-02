@@ -10,18 +10,24 @@ import (
 )
 
 func TestCheckHealthAgainstAHealthyServer(t *testing.T) {
+	t.Parallel()
+
 	addr := startHealthzServer(t, http.StatusOK)
 
 	require.NoError(t, checkHealth(addr))
 }
 
 func TestCheckHealthReportsAnUnhealthyServer(t *testing.T) {
+	t.Parallel()
+
 	addr := startHealthzServer(t, http.StatusServiceUnavailable)
 
 	require.Error(t, checkHealth(addr))
 }
 
 func TestCheckHealthReportsAnUnreachableServer(t *testing.T) {
+	t.Parallel()
+
 	require.Error(t, checkHealth(":1"))
 }
 

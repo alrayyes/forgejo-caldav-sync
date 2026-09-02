@@ -23,6 +23,8 @@ func dueAt(t *testing.T, s string) *time.Time {
 }
 
 func TestUpsertPutsAnICSObjectAtTheUIDPath(t *testing.T) {
+	t.Parallel()
+
 	var gotMethod, gotPath, gotAuthUser, gotAuthPass, gotBody string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotMethod = r.Method
@@ -59,6 +61,8 @@ func TestUpsertPutsAnICSObjectAtTheUIDPath(t *testing.T) {
 }
 
 func TestUpsertMarksDoneIssuesCompleted(t *testing.T) {
+	t.Parallel()
+
 	var gotBody string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
@@ -83,6 +87,8 @@ func TestUpsertMarksDoneIssuesCompleted(t *testing.T) {
 }
 
 func TestUpsertReturnsErrorOnNonSuccessStatus(t *testing.T) {
+	t.Parallel()
+
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
@@ -96,6 +102,8 @@ func TestUpsertReturnsErrorOnNonSuccessStatus(t *testing.T) {
 }
 
 func TestEnsureCollectionCreatesItWithMkcalendar(t *testing.T) {
+	t.Parallel()
+
 	var gotMethod string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotMethod = r.Method
@@ -112,6 +120,8 @@ func TestEnsureCollectionCreatesItWithMkcalendar(t *testing.T) {
 }
 
 func TestEnsureCollectionToleratesAnAlreadyExistingCollection(t *testing.T) {
+	t.Parallel()
+
 	for _, status := range []int{http.StatusMethodNotAllowed, http.StatusConflict} {
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(status)
@@ -126,6 +136,8 @@ func TestEnsureCollectionToleratesAnAlreadyExistingCollection(t *testing.T) {
 }
 
 func TestEnsureCollectionReturnsErrorOnOtherFailures(t *testing.T) {
+	t.Parallel()
+
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
@@ -139,6 +151,8 @@ func TestEnsureCollectionReturnsErrorOnOtherFailures(t *testing.T) {
 }
 
 func TestNewClientRequiresATrailingSlashOnBaseURL(t *testing.T) {
+	t.Parallel()
+
 	client := caldav.NewClient("https://dav.example.com/calendars/alice/forgejo", "alice", "secret")
 
 	require.True(t, strings.HasSuffix(client.CollectionURL(), "/"))
