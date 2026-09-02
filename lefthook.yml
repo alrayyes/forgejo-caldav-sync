@@ -36,6 +36,10 @@ pre-commit:
       run: bunx sort-package-json
       stage_fixed: true
 
+    - name: redocly lint
+      glob: "api/**/*.yaml"
+      run: bun run lint:api
+
 commit-msg:
   jobs:
     - name: commitlint
@@ -80,3 +84,6 @@ pre-push:
 
     - name: sort-package-json
       run: bun run lint:package-json
+
+    - name: redocly lint
+      run: bun run lint:api
