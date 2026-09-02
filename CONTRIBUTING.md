@@ -43,6 +43,7 @@ docker run --rm -i hadolint/hadolint:v2.15.1@sha256:32dac94127fd60b7b7e3fbfc65e1
 bun run format:check      # prettier, markdown and yaml
 bun run lint:md           # markdownlint
 bun run lint:api          # redocly, against api/openapi.yaml
+bun run audit             # bun audit, against the pinned dev-tooling deps
 ```
 
 CI runs exactly these commands — see `.github/workflows/ci.yml`. The git
