@@ -60,3 +60,4 @@ jobs:
       - run: bun run lint:md
       - run: bun run lint:package-json
       - run: bun run lint:api
+      - run: bun run audit
