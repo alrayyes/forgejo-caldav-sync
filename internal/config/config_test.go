@@ -28,16 +28,39 @@ func TestLoadWithOnlyRequiredVariables(t *testing.T) {
 
 	cfg, err := config.Load(fakeEnv(nil))
 
-	require.NoError(t, err)
-	require.Equal(t, "https://forge.example.com", cfg.ForgejoBaseURL)
-	require.Equal(t, "forgejo-token", cfg.ForgejoToken)
-	require.Equal(t, "webhook-secret", cfg.ForgejoWebhookSecret)
-	require.Equal(t, "https://dav.example.com/calendars/alice/forgejo/", cfg.CalDAVURL)
-	require.Equal(t, "alice", cfg.CalDAVUsername)
-	require.Equal(t, "caldav-password", cfg.CalDAVPassword)
-	require.Empty(t, cfg.Assignee)
-	require.Equal(t, ":8080", cfg.Addr)
-	require.Equal(t, 15*time.Minute, cfg.ReconcileInterval)
+	t.Run("succeeds", func(t *testing.T) {
+		t.Parallel()
+		require.NoError(t, err)
+	})
+
+	t.Run("reads the required Forgejo variables", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, "https://forge.example.com", cfg.ForgejoBaseURL)
+		require.Equal(t, "forgejo-token", cfg.ForgejoToken)
+		require.Equal(t, "webhook-secret", cfg.ForgejoWebhookSecret)
+	})
+
+	t.Run("reads the required CalDAV variables", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, "https://dav.example.com/calendars/alice/forgejo/", cfg.CalDAVURL)
+		require.Equal(t, "alice", cfg.CalDAVUsername)
+		require.Equal(t, "caldav-password", cfg.CalDAVPassword)
+	})
+
+	t.Run("assignee defaults to unset", func(t *testing.T) {
+		t.Parallel()
+		require.Empty(t, cfg.Assignee)
+	})
+
+	t.Run("addr defaults to :8080", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, ":8080", cfg.Addr)
+	})
+
+	t.Run("reconcile interval defaults to 15 minutes", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, 15*time.Minute, cfg.ReconcileInterval)
+	})
 }
 
 func TestLoadReportsEveryMissingRequiredVariable(t *testing.T) {
@@ -58,10 +81,25 @@ func TestLoadHonorsOptionalOverrides(t *testing.T) {
 		"RECONCILE_INTERVAL": "5m",
 	}))
 
-	require.NoError(t, err)
-	require.Equal(t, "bob", cfg.Assignee)
-	require.Equal(t, ":9090", cfg.Addr)
-	require.Equal(t, 5*time.Minute, cfg.ReconcileInterval)
+	t.Run("succeeds", func(t *testing.T) {
+		t.Parallel()
+		require.NoError(t, err)
+	})
+
+	t.Run("assignee is overridden", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, "bob", cfg.Assignee)
+	})
+
+	t.Run("addr is overridden", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, ":9090", cfg.Addr)
+	})
+
+	t.Run("reconcile interval is overridden", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, 5*time.Minute, cfg.ReconcileInterval)
+	})
 }
 
 func TestLoadRejectsAnInvalidReconcileInterval(t *testing.T) {

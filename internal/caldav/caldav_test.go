@@ -22,68 +22,115 @@ func dueAt(t *testing.T, s string) *time.Time {
 	return &tm
 }
 
-func TestUpsertPutsAnICSObjectAtTheUIDPath(t *testing.T) {
-	t.Parallel()
+// recordedUpsert runs client.Upsert(todo) against a test server and
+// captures the request it sent.
+type recordedUpsert struct {
+	method, path, authUser, authPass, body string
+	err                                    error
+}
 
-	var gotMethod, gotPath, gotAuthUser, gotAuthPass, gotBody string
+func recordUpsert(t *testing.T, todo sync.Todo) recordedUpsert {
+	t.Helper()
+	var rec recordedUpsert
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		gotMethod = r.Method
-		gotPath = r.URL.Path
-		gotAuthUser, gotAuthPass, _ = r.BasicAuth()
+		rec.method = r.Method
+		rec.path = r.URL.Path
+		rec.authUser, rec.authPass, _ = r.BasicAuth()
 		body, _ := io.ReadAll(r.Body)
-		gotBody = string(body)
+		rec.body = string(body)
 		w.WriteHeader(http.StatusCreated)
 	}))
 	defer srv.Close()
 
 	client := caldav.NewClient(srv.URL+"/calendars/alice/forgejo/", "alice", "secret")
-	todo := sync.Todo{
+	rec.err = client.Upsert(context.Background(), todo)
+
+	return rec
+}
+
+func TestUpsertPutsAnICSObjectAtTheUIDPath(t *testing.T) {
+	t.Parallel()
+
+	rec := recordUpsert(t, sync.Todo{
 		UID:         "forgejo-caldav-sync-alice-widgets-42",
 		Summary:     "alice/widgets#42: Widget falls over",
 		Description: "Steps to reproduce...",
 		URL:         "https://forge.example.com/alice/widgets/issues/42",
 		Due:         dueAt(t, "2026-09-01T00:00:00Z"),
-	}
+	})
 
-	err := client.Upsert(context.Background(), todo)
+	t.Run("succeeds", func(t *testing.T) {
+		t.Parallel()
+		require.NoError(t, rec.err)
+	})
 
-	require.NoError(t, err)
-	require.Equal(t, http.MethodPut, gotMethod)
-	require.Equal(t, "/calendars/alice/forgejo/forgejo-caldav-sync-alice-widgets-42.ics", gotPath)
-	require.Equal(t, "alice", gotAuthUser)
-	require.Equal(t, "secret", gotAuthPass)
-	require.Contains(t, gotBody, "BEGIN:VTODO")
-	require.Contains(t, gotBody, "UID:forgejo-caldav-sync-alice-widgets-42")
-	require.Contains(t, gotBody, "SUMMARY:alice/widgets#42: Widget falls over")
-	require.Contains(t, gotBody, "STATUS:NEEDS-ACTION")
-	require.Contains(t, gotBody, "DUE")
-	require.Contains(t, gotBody, "URL:https://forge.example.com/alice/widgets/issues/42")
+	t.Run("PUTs to the UID-derived path", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, http.MethodPut, rec.method)
+		require.Equal(t, "/calendars/alice/forgejo/forgejo-caldav-sync-alice-widgets-42.ics", rec.path)
+	})
+
+	t.Run("authenticates with the configured credentials", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, "alice", rec.authUser)
+		require.Equal(t, "secret", rec.authPass)
+	})
+
+	t.Run("body is a VTODO", func(t *testing.T) {
+		t.Parallel()
+		require.Contains(t, rec.body, "BEGIN:VTODO")
+	})
+
+	t.Run("body carries the UID", func(t *testing.T) {
+		t.Parallel()
+		require.Contains(t, rec.body, "UID:forgejo-caldav-sync-alice-widgets-42")
+	})
+
+	t.Run("body carries the summary", func(t *testing.T) {
+		t.Parallel()
+		require.Contains(t, rec.body, "SUMMARY:alice/widgets#42: Widget falls over")
+	})
+
+	t.Run("body is not done", func(t *testing.T) {
+		t.Parallel()
+		require.Contains(t, rec.body, "STATUS:NEEDS-ACTION")
+	})
+
+	t.Run("body carries the due date", func(t *testing.T) {
+		t.Parallel()
+		require.Contains(t, rec.body, "DUE")
+	})
+
+	t.Run("body carries the URL", func(t *testing.T) {
+		t.Parallel()
+		require.Contains(t, rec.body, "URL:https://forge.example.com/alice/widgets/issues/42")
+	})
 }
 
 func TestUpsertMarksDoneIssuesCompleted(t *testing.T) {
 	t.Parallel()
 
-	var gotBody string
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, _ := io.ReadAll(r.Body)
-		gotBody = string(body)
-		w.WriteHeader(http.StatusNoContent)
-	}))
-	defer srv.Close()
-
-	client := caldav.NewClient(srv.URL+"/calendars/alice/forgejo/", "alice", "secret")
-	todo := sync.Todo{
+	rec := recordUpsert(t, sync.Todo{
 		UID:       "forgejo-caldav-sync-alice-widgets-7",
 		Summary:   "alice/widgets#7: Old bug",
 		Done:      true,
 		Completed: dueAt(t, "2026-08-20T12:00:00Z"),
-	}
+	})
 
-	err := client.Upsert(context.Background(), todo)
+	t.Run("succeeds", func(t *testing.T) {
+		t.Parallel()
+		require.NoError(t, rec.err)
+	})
 
-	require.NoError(t, err)
-	require.Contains(t, gotBody, "STATUS:COMPLETED")
-	require.Contains(t, gotBody, "COMPLETED")
+	t.Run("body status is completed", func(t *testing.T) {
+		t.Parallel()
+		require.Contains(t, rec.body, "STATUS:COMPLETED")
+	})
+
+	t.Run("body carries a completed time", func(t *testing.T) {
+		t.Parallel()
+		require.Contains(t, rec.body, "COMPLETED")
+	})
 }
 
 func TestUpsertReturnsErrorOnNonSuccessStatus(t *testing.T) {
@@ -122,16 +169,23 @@ func TestEnsureCollectionCreatesItWithMkcalendar(t *testing.T) {
 func TestEnsureCollectionToleratesAnAlreadyExistingCollection(t *testing.T) {
 	t.Parallel()
 
-	for _, status := range []int{http.StatusMethodNotAllowed, http.StatusConflict} {
-		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(status)
-		}))
+	statuses := map[string]int{
+		"405 Method Not Allowed": http.StatusMethodNotAllowed,
+		"409 Conflict":           http.StatusConflict,
+	}
+	for name, status := range statuses {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(status)
+			}))
+			defer srv.Close()
 
-		client := caldav.NewClient(srv.URL+"/calendars/alice/forgejo/", "alice", "secret")
-		err := client.EnsureCollection(context.Background())
+			client := caldav.NewClient(srv.URL+"/calendars/alice/forgejo/", "alice", "secret")
+			err := client.EnsureCollection(context.Background())
 
-		require.NoErrorf(t, err, "status %d should be treated as already-exists", status)
-		srv.Close()
+			require.NoError(t, err)
+		})
 	}
 }
 
