@@ -24,6 +24,8 @@ func dueAt(t *testing.T, s string) *time.Time {
 }
 
 func TestToTodoOpenIssue(t *testing.T) {
+	t.Parallel()
+
 	issue := sync.Issue{
 		RepoFullName: "alice/widgets",
 		Number:       42,
@@ -48,6 +50,8 @@ func TestToTodoOpenIssue(t *testing.T) {
 }
 
 func TestToTodoClosedIssue(t *testing.T) {
+	t.Parallel()
+
 	closedAt := dueAt(t, "2026-08-20T12:00:00Z")
 	issue := sync.Issue{
 		RepoFullName: "alice/widgets",
@@ -64,6 +68,8 @@ func TestToTodoClosedIssue(t *testing.T) {
 }
 
 func TestToTodoUIDIsStableAcrossRuns(t *testing.T) {
+	t.Parallel()
+
 	issue := sync.Issue{RepoFullName: "alice/widgets", Number: 42, Title: "x"}
 
 	first := sync.ToTodo(issue)
@@ -73,6 +79,8 @@ func TestToTodoUIDIsStableAcrossRuns(t *testing.T) {
 }
 
 func TestFilterByAssigneeEmptyKeepsEverything(t *testing.T) {
+	t.Parallel()
+
 	issues := []sync.Issue{
 		{Number: 1, Assignees: []string{"alice"}},
 		{Number: 2, Assignees: nil},
@@ -82,6 +90,8 @@ func TestFilterByAssigneeEmptyKeepsEverything(t *testing.T) {
 }
 
 func TestFilterByAssigneeMatchesCaseInsensitively(t *testing.T) {
+	t.Parallel()
+
 	issues := []sync.Issue{
 		{Number: 1, Assignees: []string{"Alice"}},
 		{Number: 2, Assignees: []string{"bob"}},
@@ -119,6 +129,8 @@ func (f *fakeSink) Upsert(_ context.Context, todo sync.Todo) error {
 }
 
 func TestReconcileUpsertsEveryMatchingIssue(t *testing.T) {
+	t.Parallel()
+
 	src := fakeSource{issues: []sync.Issue{
 		{RepoFullName: "alice/widgets", Number: 1, Assignees: []string{"alice"}},
 		{RepoFullName: "alice/widgets", Number: 2, Assignees: []string{"bob"}},
@@ -134,6 +146,8 @@ func TestReconcileUpsertsEveryMatchingIssue(t *testing.T) {
 }
 
 func TestReconcileNoFilterSyncsEverything(t *testing.T) {
+	t.Parallel()
+
 	src := fakeSource{issues: []sync.Issue{
 		{RepoFullName: "alice/widgets", Number: 1},
 		{RepoFullName: "alice/widgets", Number: 2},
@@ -147,6 +161,8 @@ func TestReconcileNoFilterSyncsEverything(t *testing.T) {
 }
 
 func TestReconcilePropagatesSourceError(t *testing.T) {
+	t.Parallel()
+
 	src := fakeSource{err: errBoom}
 	sink := &fakeSink{}
 
@@ -156,6 +172,8 @@ func TestReconcilePropagatesSourceError(t *testing.T) {
 }
 
 func TestReconcileStopsOnFirstSinkError(t *testing.T) {
+	t.Parallel()
+
 	src := fakeSource{issues: []sync.Issue{
 		{RepoFullName: "alice/widgets", Number: 1},
 		{RepoFullName: "alice/widgets", Number: 2},
@@ -168,6 +186,8 @@ func TestReconcileStopsOnFirstSinkError(t *testing.T) {
 }
 
 func TestHandleIssueEventUpsertsWhenNoFilter(t *testing.T) {
+	t.Parallel()
+
 	sink := &fakeSink{}
 	issue := sync.Issue{RepoFullName: "alice/widgets", Number: 5, Assignees: []string{"bob"}}
 
@@ -178,6 +198,8 @@ func TestHandleIssueEventUpsertsWhenNoFilter(t *testing.T) {
 }
 
 func TestHandleIssueEventSkipsWhenFilteredOut(t *testing.T) {
+	t.Parallel()
+
 	sink := &fakeSink{}
 	issue := sync.Issue{RepoFullName: "alice/widgets", Number: 5, Assignees: []string{"bob"}}
 
@@ -188,6 +210,8 @@ func TestHandleIssueEventSkipsWhenFilteredOut(t *testing.T) {
 }
 
 func TestHandleIssueEventUpsertsWhenAssigneeMatches(t *testing.T) {
+	t.Parallel()
+
 	sink := &fakeSink{}
 	issue := sync.Issue{RepoFullName: "alice/widgets", Number: 5, Assignees: []string{"alice"}}
 
