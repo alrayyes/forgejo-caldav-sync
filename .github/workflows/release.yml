@@ -41,11 +41,22 @@ jobs:
       # notice — rules/releases.md. Only patch/minor-looking version
       # bumps get here without a human already having reviewed the
       # underlying feat/fix commits through their own pull requests.
+      #
+      # PR_JSON is parsed with jq inside the script, not fromJSON() in
+      # the step's own `env:` — GitHub Actions evaluates every step's
+      # context expressions when the job runs, even ones a step's own
+      # `if:` will end up skipping, so a fromJSON() there throws a
+      # template error on every push that doesn't open/update a PR
+      # (steps.release.outputs.pr is unset then) instead of just
+      # skipping quietly. Confirmed live: this crashed the job outright
+      # before being rewritten this way.
       - if: steps.release.outputs.prs_created == 'true'
-        run: gh pr merge --auto --squash "$PR_NUMBER"
+        run: |
+          pr_number=$(jq -r '.number' <<< "$PR_JSON")
+          gh pr merge --auto --squash "$pr_number"
         env:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          PR_NUMBER: ${{ fromJSON(steps.release.outputs.pr).number }}
+          PR_JSON: ${{ steps.release.outputs.pr }}
 
   goreleaser:
     needs: release-please
