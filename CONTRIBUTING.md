@@ -38,6 +38,7 @@ tested without HTTP at all, against fakes implementing its two interfaces.
 golangci-lint run ./...
 golangci-lint fmt ./...   # gofumpt + goimports
 go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./...
+go mod tidy -diff
 docker run --rm -i hadolint/hadolint:v2.15.1@sha256:32dac94127fd60b7b7e3fbfc65e1383b9b5e25c9bfd7b8536de7a539fe68a12d < Dockerfile
 bun run format:check      # prettier, markdown and yaml
 bun run lint:md           # markdownlint
