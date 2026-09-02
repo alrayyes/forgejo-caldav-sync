@@ -83,24 +83,35 @@ the same secret as `FORGEJO_WEBHOOK_SECRET`.
 
 ## Configuration
 
-All configuration is environment variables — see `.env.example`.
+Every setting can come from a flag, an environment variable or a config
+file — in that order of precedence, so a flag always wins and a config
+file is the fallback underneath everything else.
 
-| Variable                 | Required | Default                  |
-| ------------------------ | -------- | ------------------------ |
-| `FORGEJO_BASE_URL`       | yes      | —                        |
-| `FORGEJO_TOKEN`          | yes      | —                        |
-| `FORGEJO_WEBHOOK_SECRET` | yes      | —                        |
-| `CALDAV_URL`             | yes      | —                        |
-| `CALDAV_USERNAME`        | yes      | —                        |
-| `CALDAV_PASSWORD`        | yes      | —                        |
-| `ASSIGNEE`               | no       | unset — sync every issue |
-| `ADDR`                   | no       | `:8080`                  |
-| `RECONCILE_INTERVAL`     | no       | `15m`                    |
+| Setting                 | Flag                       | Environment variable     | Required | Default                  |
+| ----------------------- | -------------------------- | ------------------------ | -------- | ------------------------ |
+| Forgejo base URL        | `--forgejo-base-url`       | `FORGEJO_BASE_URL`       | yes      | —                        |
+| Forgejo API token       | `--forgejo-token`          | `FORGEJO_TOKEN`          | yes      | —                        |
+| Forgejo webhook secret  | `--forgejo-webhook-secret` | `FORGEJO_WEBHOOK_SECRET` | yes      | —                        |
+| CalDAV collection URL   | `--caldav-url`             | `CALDAV_URL`             | yes      | —                        |
+| CalDAV username         | `--caldav-username`        | `CALDAV_USERNAME`        | yes      | —                        |
+| CalDAV password         | `--caldav-password`        | `CALDAV_PASSWORD`        | yes      | —                        |
+| Assignee filter         | `--assignee`               | `ASSIGNEE`               | no       | unset — sync every issue |
+| HTTP listen address     | `--addr`                   | `ADDR`                   | no       | `:8080`                  |
+| Reconciliation interval | `--reconcile-interval`     | `RECONCILE_INTERVAL`     | no       | `15m`                    |
 
-`CALDAV_URL` is the collection (task list) URL, not the server root — for a
-Baïkal instance, that's typically
+`CALDAV_URL`/`--caldav-url` is the collection (task list) URL, not the
+server root — for a Baïkal instance, that's typically
 `https://your-dav-server/dav.php/calendars/<user>/<collection>/`; check
 whatever your CalDAV server's own URL layout is.
+
+Running the Docker image (`.env` + `docker-compose`/`docker run
+--env-file`) is still the documented path — environment variables keep
+working exactly as before. `forgejo-caldav-sync init` writes a starter
+config file (at `$XDG_CONFIG_HOME/forgejo-caldav-sync/config.yaml`, or
+pass `--config <path>` to use a different one) for anyone running the
+binary directly instead. A run with no config file and no relevant
+environment variable set, at an interactive terminal, offers to write one
+for you.
 
 ## Usage
 

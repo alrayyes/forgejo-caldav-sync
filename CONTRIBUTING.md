@@ -61,10 +61,19 @@ servers.
 `internal/forgejo` and `internal/caldav` adapt those interfaces to the real
 Forgejo API and a real CalDAV server, respectively. `internal/api` is the
 inbound HTTP adapter — it decodes a webhook delivery and calls into
-`internal/sync`, same as `cmd/forgejo-caldav-sync/main.go`'s reconciliation
+`internal/sync`, same as `cmd/forgejo-caldav-sync/serve.go`'s reconciliation
 loop does on the outbound side. Nothing in `internal/sync` imports any of
 the other three; that's what makes it testable without a Forgejo or CalDAV
 instance up.
+
+`internal/config` is just the `Config` struct and its `Validate()` — no
+cobra or viper import, so it stays framework-free and trivially testable.
+Resolving that struct from flags, environment and a config file is
+`cmd/forgejo-caldav-sync`'s job, since that layering is inherently tied to
+the command-line surface: `root.go` builds the flag set and viper wiring
+(`resolveConfig`), `serve.go` is the composition root for the default
+command, `init.go` writes a starter config file, and `healthcheck.go` is
+the hidden subcommand the Dockerfile's `HEALTHCHECK` calls.
 
 ## The contract
 
