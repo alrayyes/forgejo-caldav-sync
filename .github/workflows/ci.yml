@@ -83,4 +83,16 @@ jobs:
       - run: bun run lint:md
       - run: bun run lint:package-json
       - run: bun run lint:api
-      - run: bun run audit
+      # bun audit hits the npm registry directly with no retry of its own;
+      # a transient ConnectionClosed there shouldn't fail a PR that has
+      # nothing wrong with it. A real vulnerability finding still fails
+      # the job — it just does so on the last attempt instead of the
+      # first.
+      - name: Audit dependencies
+        run: |
+          for attempt in 1 2 3; do
+            bun run audit && exit 0
+            echo "bun audit failed (attempt $attempt/3)" >&2
+            sleep $((attempt * 5))
+          done
+          exit 1
