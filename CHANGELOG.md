@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/alrayyes/forgejo-caldav-sync/compare/forgejo-caldav-sync-v1.1.1...forgejo-caldav-sync-v1.1.2) (2026-09-09)
+
+
+### Bug Fixes
+
+* **ci:** give the release PR auto-merge step a repo to target ([#50](https://github.com/alrayyes/forgejo-caldav-sync/issues/50)) ([9e91488](https://github.com/alrayyes/forgejo-caldav-sync/commit/9e914888114bba4f7d1a8c4029f8db45e35af493))
+
 ## [1.1.1](https://github.com/alrayyes/forgejo-caldav-sync/compare/forgejo-caldav-sync-v1.1.0...forgejo-caldav-sync-v1.1.1) (2026-09-09)
 
 
