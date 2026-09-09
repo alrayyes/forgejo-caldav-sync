@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/alrayyes/forgejo-caldav-sync/compare/forgejo-caldav-sync-v1.1.0...forgejo-caldav-sync-v1.1.1) (2026-09-09)
+
+
+### Bug Fixes
+
+* **ci:** don't fail Dependabot PRs on a tokenless Codecov upload ([#48](https://github.com/alrayyes/forgejo-caldav-sync/issues/48)) ([560afed](https://github.com/alrayyes/forgejo-caldav-sync/commit/560afedfc0f50cd8497fcb8fb93c65931ef11e3b))
+
 ## [1.1.0](https://github.com/alrayyes/forgejo-caldav-sync/compare/forgejo-caldav-sync-v1.0.1...forgejo-caldav-sync-v1.1.0) (2026-09-02)
 
 
