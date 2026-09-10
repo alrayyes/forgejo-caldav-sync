@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.4](https://github.com/alrayyes/forgejo-caldav-sync/compare/v1.1.3...v1.1.4) (2026-09-10)
+
+
+### Bug Fixes
+
+* **ci:** tag releases as plain vX.Y.Z, not component-vX.Y.Z ([#57](https://github.com/alrayyes/forgejo-caldav-sync/issues/57)) ([576c95c](https://github.com/alrayyes/forgejo-caldav-sync/commit/576c95c65465bc4a028f7b08b96a06dabc488dad)), closes [#56](https://github.com/alrayyes/forgejo-caldav-sync/issues/56)
+
 ## [1.1.3](https://github.com/alrayyes/forgejo-caldav-sync/compare/forgejo-caldav-sync-v1.1.2...forgejo-caldav-sync-v1.1.3) (2026-09-10)
 
 
