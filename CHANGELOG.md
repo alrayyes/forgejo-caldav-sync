@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/alrayyes/forgejo-caldav-sync/compare/forgejo-caldav-sync-v1.1.2...forgejo-caldav-sync-v1.1.3) (2026-09-10)
+
+
+### Bug Fixes
+
+* **ci:** report_type, not report-type ([#54](https://github.com/alrayyes/forgejo-caldav-sync/issues/54)) ([7c6e3d8](https://github.com/alrayyes/forgejo-caldav-sync/commit/7c6e3d8d93a004d21e829848c3024bda901a3fcd))
+
 ## [1.1.2](https://github.com/alrayyes/forgejo-caldav-sync/compare/forgejo-caldav-sync-v1.1.1...forgejo-caldav-sync-v1.1.2) (2026-09-09)
 
 
