@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.5](https://github.com/alrayyes/forgejo-caldav-sync/compare/v1.1.4...v1.1.5) (2026-09-10)
+
+
+### Bug Fixes
+
+* **ci:** log into ghcr.io before pushing the attest attestation ([#62](https://github.com/alrayyes/forgejo-caldav-sync/issues/62)) ([bd931aa](https://github.com/alrayyes/forgejo-caldav-sync/commit/bd931aaf81f3c4f26ceba30058e93beed2d611ea))
+
 ## [1.1.4](https://github.com/alrayyes/forgejo-caldav-sync/compare/v1.1.3...v1.1.4) (2026-09-10)
 
 
