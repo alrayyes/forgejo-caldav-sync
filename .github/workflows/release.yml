@@ -111,10 +111,19 @@ jobs:
     permissions:
       id-token: write
       attestations: write
+      packages: write
     strategy:
       matrix:
         digest: ${{ fromJSON(needs.goreleaser.outputs.digests) }}
     steps:
+      # This job runs on its own runner, isolated from the goreleaser job's
+      # login above - push-to-registry below needs its own credentials or
+      # it fails with "No credentials found for registry ghcr.io".
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-name: ghcr.io/${{ github.repository }}
