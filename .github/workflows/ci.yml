@@ -19,7 +19,11 @@ jobs:
         with:
           go-version: "1.27.0"
       - run: go build ./...
-      - run: go test -race -coverprofile=coverage.out ./...
+      # gotestsum wraps go test for the JUnit report Test Analytics needs,
+      # on top of the same human-readable output go test already gave.
+      - run: >-
+          go tool gotestsum --junitfile junit.xml --
+          -race -coverprofile=coverage.out ./...
       - name: Coverage summary
         run: |
           echo "### Coverage" >> "$GITHUB_STEP_SUMMARY"
@@ -38,6 +42,17 @@ jobs:
           # unprivileged run, not a real test regression - true here
           # would fail every Dependabot PR's CI on that basis alone
           # (confirmed live on this repo's own PR #47).
+          fail_ci_if_error: false
+      - name: Upload test results to Codecov
+        # Runs even on a failed test step - a red PR is exactly what Test
+        # Analytics exists to explain, and a job that stops at the first
+        # failing test never reaches an upload step gated behind success.
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          report-type: test_results
+          files: junit.xml
           fail_ci_if_error: false
 
   lint:
