@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.1.6](https://github.com/alrayyes/forgejo-caldav-sync/compare/v1.1.5...v1.1.6) (2026-10-05)
+
+
+### Bug Fixes
+
+* **deps:** Bump github.com/arran4/golang-ical ([#71](https://github.com/alrayyes/forgejo-caldav-sync/issues/71)) ([fe73769](https://github.com/alrayyes/forgejo-caldav-sync/commit/fe737693964e697085a7ce35f5e5bd4d4f4e7657))
+* **deps:** Bump golang.org/x/term in the go-dependencies group ([#65](https://github.com/alrayyes/forgejo-caldav-sync/issues/65)) ([445bb59](https://github.com/alrayyes/forgejo-caldav-sync/commit/445bb59e7d6ac562a7502044c31da70e5a4dc1ae))
+* **deps:** clear the bun audit advisories (fast-uri, braces) ([756e1bd](https://github.com/alrayyes/forgejo-caldav-sync/commit/756e1bddd304da1c1d7e6aca1305764ed5485bc1))
+* **deps:** update fast-uri to clear the bun audit advisory ([e1d5277](https://github.com/alrayyes/forgejo-caldav-sync/commit/e1d5277767d639fd60a12711e6705aa88d835b34)), closes [#73](https://github.com/alrayyes/forgejo-caldav-sync/issues/73)
+
 ## [1.1.5](https://github.com/alrayyes/forgejo-caldav-sync/compare/v1.1.4...v1.1.5) (2026-09-10)
 
 
