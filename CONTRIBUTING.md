@@ -65,6 +65,11 @@ CI runs exactly these commands — see `.github/workflows/ci.yml`. The git
 hooks in `lefthook.yml` run the fast subset on commit and the rest on push,
 so a red pipeline should never be a surprise.
 
+`bun run audit` ignores one advisory, GHSA-vfj7-8cjw-p6xm (`braces`, reached
+through `markdownlint-cli2`). No patched `braces` release exists, and it only
+globs this repo's own files in dev. Drop the `--ignore` in `package.json` once
+a fix ships (#73).
+
 ## How it fits together
 
 `internal/sync` is the domain: `Issue`/`Todo` types, the mapping between
