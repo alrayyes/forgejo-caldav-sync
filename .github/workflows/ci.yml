@@ -111,6 +111,11 @@ jobs:
       # nothing wrong with it. A real vulnerability finding still fails
       # the job — it just does so on the last attempt instead of the
       # first.
+      #
+      # `bun run audit` ignores GHSA-vfj7-8cjw-p6xm (braces, reached through
+      # markdownlint-cli2): no patched release exists and it only globs this
+      # repo's own files in dev. Drop the --ignore in package.json once a fixed
+      # braces ships. Every other advisory still fails the job.
       - name: Audit dependencies
         run: |
           for attempt in 1 2 3; do
