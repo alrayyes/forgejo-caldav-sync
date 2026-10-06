@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.7](https://github.com/alrayyes/forgejo-caldav-sync/compare/v1.1.6...v1.1.7) (2026-10-06)
+
+
+### Bug Fixes
+
+* **ci:** pin smol-toml and katex past their advisories ([97ba789](https://github.com/alrayyes/forgejo-caldav-sync/commit/97ba789d0f65b33865771caf7d579a4db523ddec))
+* **ci:** pin smol-toml and katex past their advisories ([7f5117b](https://github.com/alrayyes/forgejo-caldav-sync/commit/7f5117b2d7048dff6e019e14cfe3efb9dbeff61c))
+
 ## [1.1.6](https://github.com/alrayyes/forgejo-caldav-sync/compare/v1.1.5...v1.1.6) (2026-10-05)
 
 
