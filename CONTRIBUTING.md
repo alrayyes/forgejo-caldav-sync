@@ -68,7 +68,7 @@ so a red pipeline should never be a surprise.
 `bun run audit` ignores one advisory, GHSA-vfj7-8cjw-p6xm (`braces`, reached
 through `markdownlint-cli2`). No patched `braces` release exists, and it only
 globs this repo's own files in dev. Drop the `--ignore` in `package.json` once
-a fix ships (#73).
+a patched `braces` ships.
 
 ## How it fits together
 
