@@ -13,6 +13,7 @@ require (
 
 require (
 	github.com/bitfield/gotestdox v0.2.2 // indirect
+	github.com/boumenot/gocover-cobertura v1.5.0 // indirect
 	github.com/dnephin/pflag v1.0.7 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
@@ -37,4 +38,7 @@ require (
 	gotest.tools/gotestsum v1.13.0 // indirect
 )
 
-tool gotest.tools/gotestsum
+tool (
+	github.com/boumenot/gocover-cobertura
+	gotest.tools/gotestsum
+)

@@ -150,6 +150,15 @@ go test ./...
 Every adapter is tested against an `httptest` server standing in for the
 real Forgejo API or CalDAV server — there's no live-service test layer.
 
+## Reports
+
+Every push to `main` publishes its test and coverage reports:
+
+- [Index](https://apis.ryankes.eu/forgejo-caldav-sync/reports/)
+- [Test results (JUnit XML)](https://apis.ryankes.eu/forgejo-caldav-sync/reports/tests/unit.xml)
+- [Coverage (HTML)](https://apis.ryankes.eu/forgejo-caldav-sync/reports/coverage/)
+- [Coverage (Cobertura XML)](https://apis.ryankes.eu/forgejo-caldav-sync/reports/coverage/coverage.xml)
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).

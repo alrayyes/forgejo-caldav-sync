@@ -9,3 +9,8 @@ node_modules/
 
 # Written by the release job, not by hand.
 CHANGELOG.md
+
+# Test and coverage reports, assembled in CI.
+/reports/
+junit.xml
+coverage.xml
