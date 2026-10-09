@@ -1,6 +1,6 @@
 module github.com/alrayyes/forgejo-caldav-sync
 
-go 1.27.0
+go 1.27.2
 
 require (
 	github.com/adrg/xdg v0.5.3
