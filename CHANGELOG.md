@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.8](https://github.com/alrayyes/forgejo-caldav-sync/compare/v1.1.7...v1.1.8) (2026-10-09)
+
+
+### Bug Fixes
+
+* **ci:** bump golangci-lint to v2.14.0 to read the go1.27.2 stdlib ([28a6335](https://github.com/alrayyes/forgejo-caldav-sync/commit/28a633588c6c96e83b90189ba36b6c1d0a2f8c92))
+* **deps:** bump Go to 1.27.2 for the standard-library fixes ([0cd72ec](https://github.com/alrayyes/forgejo-caldav-sync/commit/0cd72ec293ce2dc446fd04613f5f2b65e3554201))
+* **deps:** bump Go to 1.27.2 for the standard-library fixes ([6a58711](https://github.com/alrayyes/forgejo-caldav-sync/commit/6a58711f23b5651fda6f5e1ac3e146799ec7b925))
+
 ## [1.1.7](https://github.com/alrayyes/forgejo-caldav-sync/compare/v1.1.6...v1.1.7) (2026-10-06)
 
 
