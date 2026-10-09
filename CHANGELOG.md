@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/alrayyes/forgejo-caldav-sync/compare/v1.1.8...v1.2.0) (2026-10-09)
+
+
+### Features
+
+* **ci:** publish test and coverage reports ([ef3f220](https://github.com/alrayyes/forgejo-caldav-sync/commit/ef3f220796d9e23b06aab3dbe09e5781cc2850dc))
+* **ci:** publish test and coverage reports to GitHub Pages ([3ad3b4c](https://github.com/alrayyes/forgejo-caldav-sync/commit/3ad3b4c5b03162b7ddb4a963736110b21f39597a)), closes [#84](https://github.com/alrayyes/forgejo-caldav-sync/issues/84)
+
 ## [1.1.8](https://github.com/alrayyes/forgejo-caldav-sync/compare/v1.1.7...v1.1.8) (2026-10-09)
 
 
