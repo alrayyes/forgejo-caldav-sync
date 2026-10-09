@@ -33,12 +33,11 @@ pre-commit:
 
     - name: sort-package-json
       glob: "package.json"
-      run: bunx sort-package-json
+      run: bunx sort-package-json {staged_files}
       stage_fixed: true
 
-    - name: redocly lint
-      glob: "api/**/*.yaml"
-      run: bun run lint:api
+    # redocly lint resolves the whole API document and cannot take a file
+    # list, so it lives in pre-push and CI, which see the whole tree.
 
 commit-msg:
   jobs:
