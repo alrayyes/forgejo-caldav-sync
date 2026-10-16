@@ -74,8 +74,9 @@ go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 bun run audit   # bun audit, against the pinned dev-tooling deps
 ```
 
-What is already on `main` is tracked by `advisory-scan.yml`, which keeps one open `Dependency advisories`
-issue and closes it when the audits are clean. Nothing is ignored.
+What is already on `main` is tracked by `advisory-scan.yml`, which keeps one
+open `Dependency advisories` issue and closes it when the audits are clean.
+Nothing is ignored.
 
 ## How it fits together
 
