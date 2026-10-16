@@ -51,24 +51,30 @@ tested without HTTP at all, against fakes implementing its two interfaces.
 ```sh
 golangci-lint run ./...
 golangci-lint fmt ./...   # gofumpt + goimports
-go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 go mod tidy -diff
 docker run --rm -i hadolint/hadolint:v2.15.1@sha256:32dac94127fd60b7b7e3fbfc65e1383b9b5e25c9bfd7b8536de7a539fe68a12d < Dockerfile
 goreleaser check
 bun run format:check      # prettier, markdown and yaml
 bun run lint:md           # markdownlint
 bun run lint:api          # redocly, against api/openapi.yaml
-bun run audit             # bun audit, against the pinned dev-tooling deps
 ```
 
 CI runs exactly these commands — see `.github/workflows/ci.yml`. The git
 hooks in `lefthook.yml` run the fast subset on commit and the rest on push,
 so a red pipeline should never be a surprise.
 
-The audits differ between your machine and CI. CI's `govulncheck` and
-`bun-audit` jobs fail a pull request only for advisories it adds over its
-base, while the local commands list everything. What is already on `main` is
-tracked by `advisory-scan.yml`, which keeps one open `Dependency advisories`
+The audits are not in the hooks: a hook can't compare a branch with its base,
+so it would fail on advisories already on `main` and push people to bypass it.
+CI owns them. Its `govulncheck` and `bun-audit` jobs fail a pull request only
+for advisories it adds over its base. To run them by hand, which lists
+everything:
+
+```sh
+go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
+bun run audit   # bun audit, against the pinned dev-tooling deps
+```
+
+What is already on `main` is tracked by `advisory-scan.yml`, which keeps one open `Dependency advisories`
 issue and closes it when the audits are clean. Nothing is ignored.
 
 ## How it fits together
