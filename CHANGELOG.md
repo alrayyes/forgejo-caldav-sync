@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/alrayyes/forgejo-caldav-sync/compare/v1.2.0...v1.2.1) (2026-10-19)
+
+
+### Bug Fixes
+
+* **ci:** key the PR title check's concurrency group on the head commit ([#103](https://github.com/alrayyes/forgejo-caldav-sync/issues/103)) ([1e525fc](https://github.com/alrayyes/forgejo-caldav-sync/commit/1e525fc6e65b9a9972f3bd1cf4a64919254ea452)), closes [#102](https://github.com/alrayyes/forgejo-caldav-sync/issues/102)
+
 ## [1.2.0](https://github.com/alrayyes/forgejo-caldav-sync/compare/v1.1.8...v1.2.0) (2026-10-09)
 
 
