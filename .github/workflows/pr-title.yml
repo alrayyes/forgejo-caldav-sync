@@ -12,8 +12,12 @@ on:
   pull_request_target:
     types: [opened, reopened, edited, synchronize]
 
+# Keyed on the head commit too: a rebase fires several events at once, and
+# a late one carrying the previous head would otherwise cancel the run for
+# the new head, leaving the required check unreported. An older head's run
+# now finishes instead of being cancelled; it's seconds of work.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
   cancel-in-progress: true
 
 permissions:
