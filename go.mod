@@ -4,7 +4,7 @@ go 1.27.2
 
 require (
 	github.com/adrg/xdg v0.5.3
-	github.com/arran4/golang-ical v0.3.7
+	github.com/arran4/golang-ical v0.3.8
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.12.1
