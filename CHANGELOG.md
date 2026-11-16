@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.2](https://github.com/alrayyes/forgejo-caldav-sync/compare/v1.2.1...v1.2.2) (2026-11-16)
+
+
+### Bug Fixes
+
+* **deps:** Bump github.com/arran4/golang-ical ([#107](https://github.com/alrayyes/forgejo-caldav-sync/issues/107)) ([9e5afc2](https://github.com/alrayyes/forgejo-caldav-sync/commit/9e5afc2510b22d6875eb3c840eed7ddd7d1e9039))
+* **deps:** Bump golang.org/x/term ([#113](https://github.com/alrayyes/forgejo-caldav-sync/issues/113)) ([c61eb6e](https://github.com/alrayyes/forgejo-caldav-sync/commit/c61eb6ec5a2fb4f8aea778fc9bcb61cccde959fc))
+* **deps:** Bump golang.org/x/term ([#99](https://github.com/alrayyes/forgejo-caldav-sync/issues/99)) ([e40ac67](https://github.com/alrayyes/forgejo-caldav-sync/commit/e40ac67ae27bf019e44681ba151decffe542db26))
+
 ## [1.2.1](https://github.com/alrayyes/forgejo-caldav-sync/compare/v1.2.0...v1.2.1) (2026-10-19)
 
 
